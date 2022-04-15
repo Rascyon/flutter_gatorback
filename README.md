@@ -1,4 +1,4 @@
-# sensor_plus_gatorback
+# flutter_gatorback
 
 A new Flutter project.
 
