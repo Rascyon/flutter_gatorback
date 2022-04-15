@@ -52,7 +52,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  bool _listenSensor = false;
 
   List<double>? _accelerometerValues;
   List<double>? _userAccelerometerValues;
@@ -60,93 +60,59 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double>? _magnetometerValues;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     accelerometerEvents.listen((AccelerometerEvent event) {
-//       print(event);
-//     });
-// // [AccelerometerEvent (x: 0.0, y: 9.8, z: 0.0)]
-//
-//     userAccelerometerEvents.listen((UserAccelerometerEvent event) {
-//       print(event);
-//     });
-// // [UserAccelerometerEvent (x: 0.0, y: 0.0, z: 0.0)]
-//
-//     gyroscopeEvents.listen((GyroscopeEvent event) {
-//       print(event);
-//     });
-// // [GyroscopeEvent (x: 0.0, y: 0.0, z: 0.0)]
-//
-//     magnetometerEvents.listen((MagnetometerEvent event) {
-//       print(event);
-//     });
-// // [MagnetometerEvent (x: -23.6, y: 6.2, z: -34.9)]
-//   }
-
   @override
   void initState() {
     super.initState();
     _streamSubscriptions.add(
-      accelerometerEvents.listen(
-            (AccelerometerEvent event) {
+      accelerometerEvents.listen((AccelerometerEvent event) {
+        if (_listenSensor) {
           setState(() {
             _accelerometerValues = <double>[event.x, event.y, event.z];
           });
-        },
-      ),
+        }
+      }),
     );
     _streamSubscriptions.add(
-      gyroscopeEvents.listen(
-            (GyroscopeEvent event) {
+      gyroscopeEvents.listen((GyroscopeEvent event) {
+        if (_listenSensor) {
           setState(() {
             _gyroscopeValues = <double>[event.x, event.y, event.z];
           });
-        },
-      ),
+        }
+      }),
     );
     _streamSubscriptions.add(
-      userAccelerometerEvents.listen(
-            (UserAccelerometerEvent event) {
+      userAccelerometerEvents.listen((UserAccelerometerEvent event) {
+        if (_listenSensor) {
           setState(() {
             _userAccelerometerValues = <double>[event.x, event.y, event.z];
           });
-        },
-      ),
+        }
+      }),
     );
     _streamSubscriptions.add(
-      magnetometerEvents.listen(
-            (MagnetometerEvent event) {
+      magnetometerEvents.listen((MagnetometerEvent event) {
+        if (_listenSensor) {
           setState(() {
             _magnetometerValues = <double>[event.x, event.y, event.z];
           });
-        },
-      ),
+        }
+      }),
     );
   }
 
-  void _incrementCounter() {
+  void _setListenSensor() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _listenSensor = !_listenSensor;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final accelerometer =
-    _accelerometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
-    final gyroscope =
-    _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
-    final userAccelerometer = _userAccelerometerValues
-        ?.map((double v) => v.toStringAsFixed(1))
-        .toList();
-    final magnetometer =
-    _magnetometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    final accelerometer = _accelerometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    final gyroscope = _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    final userAccelerometer = _userAccelerometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    final magnetometer = _magnetometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -180,11 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              'Sensor Values:',
             ),
             Text('Accelerometer: $accelerometer'),
             Text('UserAccelerometer: $userAccelerometer'),
@@ -194,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _setListenSensor,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
