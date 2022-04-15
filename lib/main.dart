@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'dart:async';
 
 
 
@@ -53,28 +54,75 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  List<double>? _accelerometerValues;
+  List<double>? _userAccelerometerValues;
+  List<double>? _gyroscopeValues;
+  List<double>? _magnetometerValues;
+  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     accelerometerEvents.listen((AccelerometerEvent event) {
+//       print(event);
+//     });
+// // [AccelerometerEvent (x: 0.0, y: 9.8, z: 0.0)]
+//
+//     userAccelerometerEvents.listen((UserAccelerometerEvent event) {
+//       print(event);
+//     });
+// // [UserAccelerometerEvent (x: 0.0, y: 0.0, z: 0.0)]
+//
+//     gyroscopeEvents.listen((GyroscopeEvent event) {
+//       print(event);
+//     });
+// // [GyroscopeEvent (x: 0.0, y: 0.0, z: 0.0)]
+//
+//     magnetometerEvents.listen((MagnetometerEvent event) {
+//       print(event);
+//     });
+// // [MagnetometerEvent (x: -23.6, y: 6.2, z: -34.9)]
+//   }
+
   @override
   void initState() {
     super.initState();
-    accelerometerEvents.listen((AccelerometerEvent event) {
-      print(event);
-    });
-// [AccelerometerEvent (x: 0.0, y: 9.8, z: 0.0)]
-
-    userAccelerometerEvents.listen((UserAccelerometerEvent event) {
-      print(event);
-    });
-// [UserAccelerometerEvent (x: 0.0, y: 0.0, z: 0.0)]
-
-    gyroscopeEvents.listen((GyroscopeEvent event) {
-      print(event);
-    });
-// [GyroscopeEvent (x: 0.0, y: 0.0, z: 0.0)]
-
-    magnetometerEvents.listen((MagnetometerEvent event) {
-      print(event);
-    });
-// [MagnetometerEvent (x: -23.6, y: 6.2, z: -34.9)]
+    _streamSubscriptions.add(
+      accelerometerEvents.listen(
+            (AccelerometerEvent event) {
+          setState(() {
+            _accelerometerValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
+    _streamSubscriptions.add(
+      gyroscopeEvents.listen(
+            (GyroscopeEvent event) {
+          setState(() {
+            _gyroscopeValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
+    _streamSubscriptions.add(
+      userAccelerometerEvents.listen(
+            (UserAccelerometerEvent event) {
+          setState(() {
+            _userAccelerometerValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
+    _streamSubscriptions.add(
+      magnetometerEvents.listen(
+            (MagnetometerEvent event) {
+          setState(() {
+            _magnetometerValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
   }
 
   void _incrementCounter() {
@@ -90,6 +138,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final accelerometer =
+    _accelerometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    final gyroscope =
+    _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    final userAccelerometer = _userAccelerometerValues
+        ?.map((double v) => v.toStringAsFixed(1))
+        .toList();
+    final magnetometer =
+    _magnetometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -129,6 +186,10 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            Text('Accelerometer: $accelerometer'),
+            Text('UserAccelerometer: $userAccelerometer'),
+            Text('Gyroscope: $gyroscope'),
+            Text('Magnetometer: $magnetometer'),
           ],
         ),
       ),
