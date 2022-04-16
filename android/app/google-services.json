@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "829690440933",
+    "project_id": "flutter-sensors",
+    "storage_bucket": "flutter-sensors.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:829690440933:android:c4813e219e745af1e1380c",
+        "android_client_info": {
+          "package_name": "com.example.sensor_plus_gatorback"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "829690440933-e2lutgddv51virk3tkke7mioplgbqkou.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-cDd6aLolt_eV_A4YGX1JttMq7CAX0ik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "829690440933-e2lutgddv51virk3tkke7mioplgbqkou.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

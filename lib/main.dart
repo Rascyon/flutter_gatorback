@@ -1,10 +1,12 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-
-
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -14,6 +16,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -28,7 +32,24 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: FutureBuilder(
+        future: _fbApp,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print('You have an error! ${snapshot.error.toString()}');
+            return const Text('Something went wrong!');
+          }
+          else if (snapshot.hasData) {
+            return const MyHomePage(title: 'Flutter Demo Home Page');
+          }
+          else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }
+      )
+      // const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -58,6 +79,10 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double>? _userAccelerometerValues;
   List<double>? _gyroscopeValues;
   List<double>? _magnetometerValues;
+  List<List<double>>? _accelerometerData;
+  List<List<double>>? _userAccelerometerData;
+  List<List<double>>? _gyroscopeData;
+  List<List<double>>? _magnetometerData;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
   @override
@@ -66,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       accelerometerEvents.listen((AccelerometerEvent event) {
         if (_listenSensor) {
+          _accelerometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _accelerometerValues = <double>[event.x, event.y, event.z];
           });
@@ -73,17 +99,9 @@ class _MyHomePageState extends State<MyHomePage> {
       }),
     );
     _streamSubscriptions.add(
-      gyroscopeEvents.listen((GyroscopeEvent event) {
-        if (_listenSensor) {
-          setState(() {
-            _gyroscopeValues = <double>[event.x, event.y, event.z];
-          });
-        }
-      }),
-    );
-    _streamSubscriptions.add(
       userAccelerometerEvents.listen((UserAccelerometerEvent event) {
         if (_listenSensor) {
+          _userAccelerometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _userAccelerometerValues = <double>[event.x, event.y, event.z];
           });
@@ -91,8 +109,19 @@ class _MyHomePageState extends State<MyHomePage> {
       }),
     );
     _streamSubscriptions.add(
+      gyroscopeEvents.listen((GyroscopeEvent event) {
+        if (_listenSensor) {
+          _gyroscopeData?.add(<double>[event.x, event.y, event.z]);
+          setState(() {
+            _gyroscopeValues = <double>[event.x, event.y, event.z];
+          });
+        }
+      }),
+    );
+    _streamSubscriptions.add(
       magnetometerEvents.listen((MagnetometerEvent event) {
         if (_listenSensor) {
+          _magnetometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _magnetometerValues = <double>[event.x, event.y, event.z];
           });
@@ -105,6 +134,23 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _listenSensor = !_listenSensor;
     });
+  }
+
+  void _sendData() {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("test");
+    ref.set({
+      "accelerometer" : _accelerometerData,
+      "userAccelerometer" : _userAccelerometerData,
+      "gyroscope" : _gyroscopeData,
+      "magnetometer" : _magnetometerData,
+    });
+  }
+
+  void _clearData() {
+    _accelerometerData = [];
+    _userAccelerometerData = [];
+    _gyroscopeData = [];
+    _magnetometerData = [];
   }
 
   @override
@@ -145,8 +191,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'Sensor Values:',
+            Text(
+              'Listening to Sensors: ${_listenSensor.toString()}',
             ),
             Text('Accelerometer: $accelerometer'),
             Text('UserAccelerometer: $userAccelerometer'),
@@ -155,11 +201,32 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _setListenSensor,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _setListenSensor,
+            tooltip: 'Start/Pause Sensor Data',
+            child: _listenSensor ? const Icon(Icons.pause_rounded) : const Icon(Icons.play_arrow_rounded),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          FloatingActionButton(
+            onPressed: _sendData,
+            tooltip: 'Send Sensor Data',
+            child: const Icon(Icons.cloud),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          FloatingActionButton(
+            onPressed: _clearData,
+            tooltip: 'Clear Sensor Data',
+            child: const Icon(Icons.clear),
+          ),
+        ],
+      )
     );
   }
 }
