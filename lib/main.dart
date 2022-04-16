@@ -75,6 +75,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool _listenSensor = false;
 
+
   List<double>? _accelerometerValues;
   List<double>? _userAccelerometerValues;
   List<double>? _gyroscopeValues;
@@ -85,13 +86,30 @@ class _MyHomePageState extends State<MyHomePage> {
   List<List<double>>? _magnetometerData;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
+  //Timer to store a sensor reading every 200 milliseconds
+  Timer? _timer;
+  void startTimer() {
+    _timer = Timer.periodic(const Duration(milliseconds: 200), (timer) {timerCallback();});
+  }
+  void timerCallback() {
+    if (!_listenSensor) {
+      _timer?.cancel();
+    }
+    else {
+      _accelerometerData?.add(_accelerometerValues!);
+      _userAccelerometerData?.add(_userAccelerometerValues!);
+      _gyroscopeData?.add(_gyroscopeValues!);
+      _magnetometerData?.add(_magnetometerValues!);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _streamSubscriptions.add(
       accelerometerEvents.listen((AccelerometerEvent event) {
         if (_listenSensor) {
-          _accelerometerData?.add(<double>[event.x, event.y, event.z]);
+          // _accelerometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _accelerometerValues = <double>[event.x, event.y, event.z];
           });
@@ -101,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       userAccelerometerEvents.listen((UserAccelerometerEvent event) {
         if (_listenSensor) {
-          _userAccelerometerData?.add(<double>[event.x, event.y, event.z]);
+          // _userAccelerometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _userAccelerometerValues = <double>[event.x, event.y, event.z];
           });
@@ -111,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       gyroscopeEvents.listen((GyroscopeEvent event) {
         if (_listenSensor) {
-          _gyroscopeData?.add(<double>[event.x, event.y, event.z]);
+          // _gyroscopeData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _gyroscopeValues = <double>[event.x, event.y, event.z];
           });
@@ -121,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       magnetometerEvents.listen((MagnetometerEvent event) {
         if (_listenSensor) {
-          _magnetometerData?.add(<double>[event.x, event.y, event.z]);
+          // _magnetometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _magnetometerValues = <double>[event.x, event.y, event.z];
           });
@@ -131,6 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _setListenSensor() {
+    if (!_listenSensor) {
+      startTimer();
+    }
+
     setState(() {
       _listenSensor = !_listenSensor;
     });
