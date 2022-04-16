@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>829690440933-q5a5qs4bh049sgujhqevcbpv2huth005.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.829690440933-q5a5qs4bh049sgujhqevcbpv2huth005</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCGROgkOUAAUHUemWgHDR14EoiipUMJU2A</string>
+	<key>GCM_SENDER_ID</key>
+	<string>829690440933</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.sensorPlusGatorback</string>
+	<key>PROJECT_ID</key>
+	<string>flutter-sensors</string>
+	<key>STORAGE_BUCKET</key>
+	<string>flutter-sensors.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:829690440933:ios:158b74789f86d3d1e1380c</string>
+</dict>
+</plist>
