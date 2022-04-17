@@ -163,7 +163,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     _audioCache = AudioCache(
-      prefix: 'assets/audio/',
       fixedPlayer: AudioPlayer()..setReleaseMode(ReleaseMode.STOP),
     );
   }
