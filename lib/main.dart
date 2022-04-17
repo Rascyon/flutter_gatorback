@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,6 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List<List<double>>? _magnetometerData;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
+  final player = AudioPlayer();
+
   double? _userAccelerometerChange;
   double? _gyroscopeChange;
   List<double> _UACList = [];
@@ -85,9 +87,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _phoneDropDetected = false;
   int _counter = 0;
   int _time = 0;
-
-  //Audio
-  AudioCache audioPlayer = AudioCache();
 
   //Timer to store a sensor reading every 200 milliseconds
   Timer? _timer;
@@ -118,6 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
       _gyroscopeChange = sqrt(pow(_gyroscopeValues![0], 2) + pow(_gyroscopeValues![1], 2) + pow(_gyroscopeValues![2], 2));
       _GCList.add(_gyroscopeChange!);
 
+      //Add to time counter
+      _counter++;
+
       //Check for fall
       checkFall();
     }
@@ -126,7 +128,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    audioPlayer.play("alarm.mp3");
     _streamSubscriptions.add(
       accelerometerEvents.listen((AccelerometerEvent event) {
         if (_listenSensor) {
@@ -163,7 +164,8 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }),
     );
-    _counter++;
+    
+    player.setAsset("/assets/alarm.mp3");
   }
 
   void _setListenSensor() {
@@ -209,6 +211,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _time = 0;
       _counter = 0;
     });
+
+    player.play();
   }
 
   void detectFall() {
