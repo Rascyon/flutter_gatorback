@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,6 +83,10 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> _GCList = [];
   bool _fallDetected = false;
   bool _phoneDropDetected = false;
+  int _time = 0;
+
+  //Audio
+  late final AudioCache _audioCache;
 
   //Timer to store a sensor reading every 200 milliseconds
   Timer? _timer;
@@ -156,6 +161,11 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }),
     );
+
+    _audioCache = AudioCache(
+      prefix: 'assets/audio/',
+      fixedPlayer: AudioPlayer()..setReleaseMode(ReleaseMode.STOP),
+    );
   }
 
   void _setListenSensor() {
@@ -197,6 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       _fallDetected = false;
       _phoneDropDetected = false;
+      _time = 0;
     });
   }
 
@@ -205,6 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _fallDetected = true;
       _listenSensor = false;
     });
+    _audioCache.play('alarm.mp3', volume: 1);
   }
 
   bool detectPhoneDrop(int timeCheck) {
@@ -300,6 +312,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text('Magnetometer: $magnetometer'),
             Text('Fall Detected: ${_fallDetected.toString()}'),
             Text('Phone Drop Detected: ${_phoneDropDetected.toString()}'),
+            Text("Time of fall: ${_time}"),
           ],
         ),
       ),
