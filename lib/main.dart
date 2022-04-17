@@ -86,21 +86,21 @@ class _MyHomePageState extends State<MyHomePage> {
   //Timer to store a sensor reading every 200 milliseconds
   Timer? _timer;
   void startTimer() {
-    _timer = Timer.periodic(const Duration(milliseconds: 200), (timer) {timerCallback();});
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {timerCallback();});
   }
   void timerCallback() {
     if (!_listenSensor) {
       _timer?.cancel();
     }
     else {
-      if (_accelerometerData?.length == 100) {
-        _accelerometerData?.removeRange(0, 70);
-        _userAccelerometerData?.removeRange(0, 70);
-        _gyroscopeData?.removeRange(0, 70);
-        _magnetometerData?.removeRange(0, 70);
-        _UACList.removeRange(0, 70);
-        _GCList.removeRange(0, 70);
-      }
+      // if (_accelerometerData?.length == 100) {
+      //   _accelerometerData?.removeRange(0, 70);
+      //   _userAccelerometerData?.removeRange(0, 70);
+      //   _gyroscopeData?.removeRange(0, 70);
+      //   _magnetometerData?.removeRange(0, 70);
+      //   _UACList.removeRange(0, 70);
+      //   _GCList.removeRange(0, 70);
+      // }
       _accelerometerData?.add(_accelerometerValues!);
       _userAccelerometerData?.add(_userAccelerometerValues!);
       _gyroscopeData?.add(_gyroscopeValues!);
@@ -196,6 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _GCList = [];
 
       _fallDetected = false;
+      _phoneDropDetected = false;
     });
   }
 
@@ -208,14 +209,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool detectPhoneDrop(int timeCheck) {
     int count = 0;
-    if (_GCList[timeCheck] > 10) {count++;}
-    if (_GCList[timeCheck + 1] > 10) {count++;}
-    if (_GCList[timeCheck + 2] > 10) {count++;}
-    if (_GCList[timeCheck + 3] > 10) {count++;}
+    if (_GCList[timeCheck] > 7) {count++;}
+    if (_GCList[timeCheck + 1] > 7) {count++;}
+    if (_GCList[timeCheck + 2] > 7) {count++;}
+    if (_GCList[timeCheck + 3] > 7) {count++;}
+    if (_GCList[timeCheck + 4] > 7) {count++;}
+    if (_GCList[timeCheck + 5] > 7) {count++;}
+    if (_GCList[timeCheck + 6] > 7) {count++;}
+    if (_GCList[timeCheck + 7] > 7) {count++;}
 
-    if (count >= 2) {
+    if (count >= 4) {
       setState(() {
         _phoneDropDetected = true;
+        _listenSensor = false;
       });
       return true;
     }
@@ -223,17 +229,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void checkFall() {
-    //Never checks any data for first 3 seconds when sensors start
+    //Never checks any data for first 1.5 seconds when sensors start
     if (_fallDetected || _UACList.length < 30) {
       return;
     }
-    //Checks for fall after 3 seconds
+    //Checks for fall every 0.1 seconds after 1.5 seconds of sensor recording
     int timeCheck = _UACList.length - 1 - 15;
     //First check: Initial falling motion with low UAC spike
     if (_UACList[timeCheck] > 3) {
       //Second check with high UAC spike in next 3 200 millisecond checks
       // if (_UACList[timeCheck + 1] > 9 || _UACList[timeCheck + 2] > 9 || _UACList[timeCheck + 3] > 9) {
-      if (_UACList[timeCheck + 1] > 20 || _UACList[timeCheck + 2] > 20 || _UACList[timeCheck + 3] > 20) {
+      if (_UACList[timeCheck + 1] > 20 || _UACList[timeCheck + 2] > 20 || _UACList[timeCheck + 3] > 20 || _UACList[timeCheck + 4] > 20 || _UACList[timeCheck + 5] > 20 ) {
         //Third check with GC spike over 4 200 millisecond checks
         if (_GCList[timeCheck] > 4.5 || _GCList[timeCheck + 1] > 4.5 || _GCList[timeCheck + 2] > 4.5 || _GCList[timeCheck + 3] > 4.5) {
           //Next checks cover possible activities which cause fall detection i.e. drop phone or walking
