@@ -180,18 +180,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _clearData() {
-    _accelerometerValues = [];
-    _userAccelerometerValues = [];
-    _gyroscopeValues = [];
-    _magnetometerValues = [];
+    setState(() {
+      _accelerometerValues = [];
+      _userAccelerometerValues = [];
+      _gyroscopeValues = [];
+      _magnetometerValues = [];
 
-    _accelerometerData = [];
-    _userAccelerometerData = [];
-    _gyroscopeData = [];
-    _magnetometerData = [];
+      _accelerometerData = [];
+      _userAccelerometerData = [];
+      _gyroscopeData = [];
+      _magnetometerData = [];
 
-    _UACList = [];
-    _GCList = [];
+      _UACList = [];
+      _GCList = [];
+
+      _fallDetected = false;
+    });
   }
 
   void detectFall() {
