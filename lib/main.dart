@@ -83,10 +83,11 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> _GCList = [];
   bool _fallDetected = false;
   bool _phoneDropDetected = false;
+  int _counter = 0;
   int _time = 0;
 
   //Audio
-  late final AudioCache _audioCache;
+  AudioCache audioPlayer = AudioCache();
 
   //Timer to store a sensor reading every 200 milliseconds
   Timer? _timer;
@@ -125,6 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    audioPlayer.play("alarm.mp3");
     _streamSubscriptions.add(
       accelerometerEvents.listen((AccelerometerEvent event) {
         if (_listenSensor) {
@@ -161,10 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }),
     );
-
-    _audioCache = AudioCache(
-      fixedPlayer: AudioPlayer()..setReleaseMode(ReleaseMode.STOP),
-    );
+    _counter++;
   }
 
   void _setListenSensor() {
@@ -186,6 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
       "magnetometer" : _magnetometerData,
       "UAC" : _UACList,
       "GC" : _GCList,
+      "Time" : _time,
     });
   }
 
@@ -207,6 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _fallDetected = false;
       _phoneDropDetected = false;
       _time = 0;
+      _counter = 0;
     });
   }
 
@@ -214,8 +215,8 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _fallDetected = true;
       _listenSensor = false;
+      _time = _counter;
     });
-    _audioCache.play('alarm.mp3', volume: 1);
   }
 
   bool detectPhoneDrop(int timeCheck) {
