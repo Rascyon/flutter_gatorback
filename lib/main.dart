@@ -20,9 +20,9 @@ class MyApp extends StatelessWidget {
     final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Gator SafeSense',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
       ),
       home: FutureBuilder(
         future: _fbApp,
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             return const Text('Something went wrong!');
           }
           else if (snapshot.hasData) {
-            return const MyHomePage(title: 'Gator Safe Sense');
+            return const TestPage(title: 'Gator SafeSense');
           }
           else {
             return const Center(
@@ -41,13 +41,12 @@ class MyApp extends StatelessWidget {
           }
         }
       )
-      // const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class TestPage extends StatefulWidget {
+  const TestPage({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -61,10 +60,10 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<TestPage> createState() => _TestPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _TestPageState extends State<TestPage> {
   bool _listenSensor = false;
 
   List<double>? _accelerometerValues;
@@ -88,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   int _time = 0;
 
-  //Timer to store a sensor reading every 200 milliseconds
+  //Timer to store a sensor reading every 100 milliseconds
   Timer? _timer;
   void startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {timerCallback();});
@@ -211,18 +210,25 @@ class _MyHomePageState extends State<MyHomePage> {
       _time = 0;
       _counter = 0;
     });
-
-    player.play();
+    stopAlarm();
   }
 
-  Future<void> detectFall() async {
+  Future<void> playAlarm() async {
+    await player.setAsset('assets/audio/alarm.mp3');
+    await player.play();
+  }
+
+  Future<void> stopAlarm() async {
+    await player.stop();
+  }
+
+  void detectFall() {
     setState(() {
       _fallDetected = true;
       _listenSensor = false;
       _time = _counter - 16;
     });
-    await player.setAsset('assets/audio/alarm.mp3');
-    player.play();
+    playAlarm();
   }
 
   bool detectPhoneDrop(int timeCheck) {
@@ -318,7 +324,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text('Magnetometer: $magnetometer'),
             Text('Fall Detected: ${_fallDetected.toString()}'),
             Text('Phone Drop Detected: ${_phoneDropDetected.toString()}'),
-            Text("Time of fall: ${_time}"),
+            Text("Time of fall: ${_time.toString()}"),
           ],
         ),
       ),
@@ -346,8 +352,388 @@ class _MyHomePageState extends State<MyHomePage> {
             tooltip: 'Clear Sensor Data',
             child: const Icon(Icons.clear),
           ),
+          const SizedBox(
+            height: 10,
+          ),
+          FloatingActionButton(
+            onPressed: () {Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MyHomePage(title: "Gator SafeSense")),
+            );},
+            tooltip: 'Home Page',
+            child: const Icon(Icons.home),
+          ),
         ],
       )
     );
+  }
+}
+
+//Charles home page
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  static const countdownDuration = Duration(seconds: 30);
+
+  var seconds = 30;
+  Duration duration = const Duration(seconds: 30);
+  Timer? timer;
+  bool hasFallen = false;
+  bool isCountDown = true;
+  bool contactAuthorities = false;
+
+  bool _listenSensor = false;
+  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
+
+  List<double>? _accelerometerValues;
+  List<double>? _userAccelerometerValues;
+  List<double>? _gyroscopeValues;
+  List<double>? _magnetometerValues;
+
+  double? _userAccelerometerChange;
+  double? _gyroscopeChange;
+  List<double> _UACList = [];
+  List<double> _GCList = [];
+  bool _fallDetected = false;
+
+  //Timer to store a sensor reading every 100 milliseconds
+  Timer? _sensorTimer;
+
+  //Audio
+  late AudioPlayer player;
+
+  void startSensorTimer() {
+    _sensorTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {timerCallback();});
+  }
+  void timerCallback() {
+    if (!_listenSensor) {
+      _sensorTimer?.cancel();
+    }
+    else {
+      //Set changes and add to list
+      _userAccelerometerChange = sqrt(pow(_userAccelerometerValues![0], 2) + pow(_userAccelerometerValues![1], 2) + pow(_userAccelerometerValues![2], 2));
+      _UACList.add(_userAccelerometerChange!);
+      _gyroscopeChange = sqrt(pow(_gyroscopeValues![0], 2) + pow(_gyroscopeValues![1], 2) + pow(_gyroscopeValues![2], 2));
+      _GCList.add(_gyroscopeChange!);
+
+      //Check for fall
+      checkFall();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _streamSubscriptions.add(
+      accelerometerEvents.listen((AccelerometerEvent event) {
+        if (_listenSensor) {
+          setState(() {
+            _accelerometerValues = <double>[event.x, event.y, event.z];
+          });
+        }
+      }),
+    );
+    _streamSubscriptions.add(
+      userAccelerometerEvents.listen((UserAccelerometerEvent event) {
+        if (_listenSensor) {
+          setState(() {
+            _userAccelerometerValues = <double>[event.x, event.y, event.z];
+          });
+        }
+      }),
+    );
+    _streamSubscriptions.add(
+      gyroscopeEvents.listen((GyroscopeEvent event) {
+        if (_listenSensor) {
+          setState(() {
+            _gyroscopeValues = <double>[event.x, event.y, event.z];
+          });
+        }
+      }),
+    );
+    _streamSubscriptions.add(
+      magnetometerEvents.listen((MagnetometerEvent event) {
+        if (_listenSensor) {
+          setState(() {
+            _magnetometerValues = <double>[event.x, event.y, event.z];
+          });
+        }
+      }),
+    );
+
+    startSensorTimer();
+    player = AudioPlayer();
+  }
+
+  void detectFall() {
+    setState(() {
+      _fallDetected = true;
+      _listenSensor = false;
+    });
+    fallTrigger();
+  }
+
+  bool detectPhoneDrop(int timeCheck) {
+    int count = 0;
+    if (_GCList[timeCheck] > 7) {count++;}
+    if (_GCList[timeCheck + 1] > 7) {count++;}
+    if (_GCList[timeCheck + 2] > 7) {count++;}
+    if (_GCList[timeCheck + 3] > 7) {count++;}
+    if (_GCList[timeCheck + 4] > 7) {count++;}
+    if (_GCList[timeCheck + 5] > 7) {count++;}
+    if (_GCList[timeCheck + 6] > 7) {count++;}
+    if (_GCList[timeCheck + 7] > 7) {count++;}
+
+    if (count >= 4) {
+      setState(() {
+        _UACList = [];
+        _GCList = [];
+      });
+      return true;
+    }
+    return false;
+  }
+
+  void checkFall() {
+    //Never checks any data for first 1.5 seconds when sensors start
+    if (_fallDetected || _UACList.length < 30) {
+      return;
+    }
+    //Checks for fall every 0.1 seconds after 1.5 seconds of sensor recording
+    int timeCheck = _UACList.length - 1 - 15;
+    //First check: Initial falling motion with low UAC spike
+    if (_UACList[timeCheck] > 3) {
+      //Second check with high UAC spike in next 3 200 millisecond checks
+      // if (_UACList[timeCheck + 1] > 9 || _UACList[timeCheck + 2] > 9 || _UACList[timeCheck + 3] > 9) {
+      if (_UACList[timeCheck + 1] > 20 || _UACList[timeCheck + 2] > 20 || _UACList[timeCheck + 3] > 20 || _UACList[timeCheck + 4] > 20 || _UACList[timeCheck + 5] > 20 ) {
+        //Third check with GC spike over 4 200 millisecond checks
+        if (_GCList[timeCheck] > 4.5 || _GCList[timeCheck + 1] > 4.5 || _GCList[timeCheck + 2] > 4.5 || _GCList[timeCheck + 3] > 4.5) {
+          //Next checks cover possible activities which cause fall detection i.e. drop phone or walking
+          //Drop phone test: gyroscope values are greater than 10 over 3 checks
+          if (detectPhoneDrop(timeCheck)) {
+            return;
+          }
+          detectFall();
+        }
+      }
+    }
+  }
+
+  void startTimer() {
+    setState(() {
+      timer = Timer.periodic(const Duration(seconds: 1), (_) => decrement());
+    });
+  }
+
+  void decrement() {
+    setState(() {
+      if (isCountDown) {
+        seconds = duration.inSeconds - 1;
+        print('Duration: $seconds');
+        if (seconds < 0) {
+          confirmedFall();
+        } else {
+          duration = Duration(seconds: seconds);
+        }
+      }
+    });
+  }
+
+  void resetTimer() {
+    timer?.cancel();
+    duration = countdownDuration;
+  }
+
+  void resetApp() {
+    setState(() {
+      hasFallen = false;
+      isCountDown = true;
+      contactAuthorities = false;
+      resetTimer();
+      stopAlarm();
+    });
+  }
+
+  //Function used when accelerometer data indicates possibility of fall.
+  //Proceeds to prompt user if a fall occurred.
+  void fallTrigger() {
+    setState(() {
+      hasFallen = true;
+      startTimer();
+    });
+  }
+
+  void confirmedFall() {
+    setState(() {
+      contactAuthorities = true;
+      isCountDown = false;
+      hasFallen = true;
+      resetTimer();
+    });
+  }
+
+  Future<void> playAlarm() async {
+    await player.setAsset('assets/audio/alarm.mp3');
+    await player.play();
+  }
+
+  Future<void> stopAlarm() async {
+    await player.stop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Visibility(
+                  child: const Text("No fall detected \n Enjoy yourself!",
+                      style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 40)),
+                  visible: !hasFallen),
+              Visibility(
+                child: const Text('Fall detected \n Are you OK?',
+                    style:
+                    TextStyle(fontWeight: FontWeight.bold, fontSize: 40)),
+                visible: (hasFallen & !contactAuthorities),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Visibility(
+                      child: ElevatedButton(
+                          child: const Text("Yes",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 50)),
+                          onPressed: resetApp,
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.green),
+                              shadowColor: MaterialStateProperty.all<Color>(
+                                Colors.green.withOpacity(0.5),
+                              ),
+                              fixedSize: MaterialStateProperty.all<Size>(
+                                  const Size(180, 400)))),
+                      visible: (hasFallen & !contactAuthorities)),
+                  const SizedBox(
+                    width: 9,
+                  ),
+                  Visibility(
+                    child: ElevatedButton(
+                        child: const Text("No",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 50)),
+                        onPressed: confirmedFall,
+                        style: ButtonStyle(
+                            backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red),
+                            shadowColor: MaterialStateProperty.all<Color>(
+                                Colors.red.withOpacity(0.5)),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size(180, 400)))),
+                    visible: (hasFallen & !contactAuthorities),
+                  )
+                ],
+              ),
+              Visibility(
+                  child: const Text(
+                    'Contacting help in...',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                  ),
+                  visible: (hasFallen & !contactAuthorities)),
+              Visibility(
+                  child: buildTime(),
+                  visible: (hasFallen & !contactAuthorities)),
+              Visibility(
+                  child: const Text('Help is on the way',
+                      style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+                  visible: contactAuthorities),
+              Visibility(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Visibility(
+                          child: ElevatedButton(
+                              child: const Text("Noise",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 50)),
+                              onPressed: playAlarm,
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                  MaterialStateProperty.all<Color>(Colors.blue),
+                                  shadowColor: MaterialStateProperty.all<Color>(
+                                    Colors.green.withOpacity(0.5),
+                                  ),
+                                  fixedSize: MaterialStateProperty.all<Size>(
+                                      const Size(180, 400)))),
+                          visible: (contactAuthorities)),
+                      const SizedBox(
+                        width: 9,
+                      ),
+                      Visibility(
+                        child: ElevatedButton(
+                            child: const Text("Reset",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 50,
+                                )),
+                            onPressed: resetApp,
+                            style: ButtonStyle(
+                                backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.red),
+                                shadowColor: MaterialStateProperty.all<Color>(
+                                    Colors.red.withOpacity(0.5)),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size(180, 400)))),
+                        visible: (contactAuthorities),
+                      ),
+                    ],
+                  )),
+            ],
+          ),
+        ),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              onPressed: () {
+                if (!contactAuthorities & !hasFallen) {
+                  fallTrigger();
+                } else {
+                  print("RESET APP REQUIRED");
+                }
+              },
+              tooltip: 'Trigger Fall',
+              child: const Icon(Icons.add),
+            ),
+            const SizedBox(
+              width: 9,
+            ),
+            FloatingActionButton(
+              onPressed: resetApp,
+              tooltip: 'Reset',
+              child: const Icon(Icons.loop),
+            ),
+          ],
+        ),
+      // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget buildTime() {
+    return Text('${duration.inSeconds}', style: const TextStyle(fontSize: 40));
   }
 }
