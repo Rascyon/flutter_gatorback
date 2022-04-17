@@ -13,7 +13,7 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  // This widget is the root of the application.
   @override
   Widget build(BuildContext context) {
     final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
@@ -21,15 +21,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: FutureBuilder(
@@ -40,7 +31,7 @@ class MyApp extends StatelessWidget {
             return const Text('Something went wrong!');
           }
           else if (snapshot.hasData) {
-            return const MyHomePage(title: 'Flutter Demo Home Page');
+            return const MyHomePage(title: 'Gator Safe Sense');
           }
           else {
             return const Center(
@@ -75,7 +66,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool _listenSensor = false;
 
-
   List<double>? _accelerometerValues;
   List<double>? _userAccelerometerValues;
   List<double>? _gyroscopeValues;
@@ -85,6 +75,12 @@ class _MyHomePageState extends State<MyHomePage> {
   List<List<double>>? _gyroscopeData;
   List<List<double>>? _magnetometerData;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
+
+  double? _userAccelerometerChange;
+  double? _gyroscopeChange;
+  List<double> _UACList = [];
+  List<double> _GCList = [];
+  bool _fallDetected = false;
 
   //Timer to store a sensor reading every 200 milliseconds
   Timer? _timer;
@@ -96,10 +92,27 @@ class _MyHomePageState extends State<MyHomePage> {
       _timer?.cancel();
     }
     else {
+      if (_accelerometerData?.length == 100) {
+        _accelerometerData?.removeRange(0, 70);
+        _userAccelerometerData?.removeRange(0, 70);
+        _gyroscopeData?.removeRange(0, 70);
+        _magnetometerData?.removeRange(0, 70);
+        _UACList.removeRange(0, 70);
+        _GCList.removeRange(0, 70);
+      }
       _accelerometerData?.add(_accelerometerValues!);
       _userAccelerometerData?.add(_userAccelerometerValues!);
       _gyroscopeData?.add(_gyroscopeValues!);
       _magnetometerData?.add(_magnetometerValues!);
+
+      //Set changes and add to list
+      _userAccelerometerChange = sqrt(pow(_userAccelerometerValues![0], 2) + pow(_userAccelerometerValues![1], 2) + pow(_userAccelerometerValues![2], 2));
+      _UACList.add(_userAccelerometerChange!);
+      _gyroscopeChange = sqrt(pow(_gyroscopeValues![0], 2) + pow(_gyroscopeValues![1], 2) + pow(_gyroscopeValues![2], 2));
+      _GCList.add(_gyroscopeChange!);
+
+      //Check for fall
+      checkFall();
     }
   }
 
@@ -109,7 +122,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       accelerometerEvents.listen((AccelerometerEvent event) {
         if (_listenSensor) {
-          // _accelerometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _accelerometerValues = <double>[event.x, event.y, event.z];
           });
@@ -119,7 +131,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       userAccelerometerEvents.listen((UserAccelerometerEvent event) {
         if (_listenSensor) {
-          // _userAccelerometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _userAccelerometerValues = <double>[event.x, event.y, event.z];
           });
@@ -129,7 +140,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       gyroscopeEvents.listen((GyroscopeEvent event) {
         if (_listenSensor) {
-          // _gyroscopeData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _gyroscopeValues = <double>[event.x, event.y, event.z];
           });
@@ -139,7 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(
       magnetometerEvents.listen((MagnetometerEvent event) {
         if (_listenSensor) {
-          // _magnetometerData?.add(<double>[event.x, event.y, event.z]);
           setState(() {
             _magnetometerValues = <double>[event.x, event.y, event.z];
           });
@@ -165,14 +174,68 @@ class _MyHomePageState extends State<MyHomePage> {
       "userAccelerometer" : _userAccelerometerData,
       "gyroscope" : _gyroscopeData,
       "magnetometer" : _magnetometerData,
+      "UAC" : _UACList,
+      "GC" : _GCList,
     });
   }
 
   void _clearData() {
+    _accelerometerValues = [];
+    _userAccelerometerValues = [];
+    _gyroscopeValues = [];
+    _magnetometerValues = [];
+
     _accelerometerData = [];
     _userAccelerometerData = [];
     _gyroscopeData = [];
     _magnetometerData = [];
+
+    _UACList = [];
+    _GCList = [];
+  }
+
+  void detectFall() {
+    setState(() {
+      _fallDetected = true;
+      _listenSensor = false;
+    });
+  }
+
+  bool detectPhoneDrop(int timeCheck) {
+    int count = 0;
+    if (_GCList[timeCheck] > 10) {count++;}
+    if (_GCList[timeCheck + 1] > 10) {count++;}
+    if (_GCList[timeCheck + 2] > 10) {count++;}
+    if (_GCList[timeCheck + 3] > 10) {count++;}
+
+    if (count >= 2) {
+      return true;
+    }
+    return false;
+  }
+
+  void checkFall() {
+    //Never checks any data for first 3 seconds when sensors start
+    if (_fallDetected || _UACList.length < 30) {
+      return;
+    }
+    //Checks for fall after 3 seconds
+    int timeCheck = _UACList.length - 1 - 15;
+    //First check: Initial falling motion with low UAC spike
+    if (_UACList[timeCheck] > 3) {
+      //Second check with high UAC spike in next 3 200 millisecond checks
+      if (_UACList[timeCheck + 1] > 9 || _UACList[timeCheck + 2] > 9 || _UACList[timeCheck + 3] > 9) {
+        //Third check with GC spike over 4 200 millisecond checks
+        if (_GCList[timeCheck] > 4.5 || _GCList[timeCheck + 1] > 4.5 || _GCList[timeCheck + 2] > 4.5 || _GCList[timeCheck + 3] > 4.5) {
+          //Next checks cover possible activities which cause fall detection i.e. drop phone or walking
+          //Drop phone test: gyroscope values are greater than 10 over 3 checks
+          if (detectPhoneDrop(timeCheck)) {
+            return;
+          }
+          detectFall();
+        }
+      }
+    }
   }
 
   @override
@@ -220,6 +283,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text('UserAccelerometer: $userAccelerometer'),
             Text('Gyroscope: $gyroscope'),
             Text('Magnetometer: $magnetometer'),
+            Text('Fall Detected: ${_fallDetected.toString()}'),
           ],
         ),
       ),
