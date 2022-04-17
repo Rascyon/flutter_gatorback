@@ -81,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> _UACList = [];
   List<double> _GCList = [];
   bool _fallDetected = false;
+  bool _phoneDropDetected = false;
 
   //Timer to store a sensor reading every 200 milliseconds
   Timer? _timer;
@@ -213,6 +214,9 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_GCList[timeCheck + 3] > 10) {count++;}
 
     if (count >= 2) {
+      setState(() {
+        _phoneDropDetected = true;
+      });
       return true;
     }
     return false;
@@ -228,7 +232,8 @@ class _MyHomePageState extends State<MyHomePage> {
     //First check: Initial falling motion with low UAC spike
     if (_UACList[timeCheck] > 3) {
       //Second check with high UAC spike in next 3 200 millisecond checks
-      if (_UACList[timeCheck + 1] > 9 || _UACList[timeCheck + 2] > 9 || _UACList[timeCheck + 3] > 9) {
+      // if (_UACList[timeCheck + 1] > 9 || _UACList[timeCheck + 2] > 9 || _UACList[timeCheck + 3] > 9) {
+      if (_UACList[timeCheck + 1] > 20 || _UACList[timeCheck + 2] > 20 || _UACList[timeCheck + 3] > 20) {
         //Third check with GC spike over 4 200 millisecond checks
         if (_GCList[timeCheck] > 4.5 || _GCList[timeCheck + 1] > 4.5 || _GCList[timeCheck + 2] > 4.5 || _GCList[timeCheck + 3] > 4.5) {
           //Next checks cover possible activities which cause fall detection i.e. drop phone or walking
@@ -288,6 +293,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text('Gyroscope: $gyroscope'),
             Text('Magnetometer: $magnetometer'),
             Text('Fall Detected: ${_fallDetected.toString()}'),
+            Text('Phone Drop Detected: ${_phoneDropDetected.toString()}'),
           ],
         ),
       ),
