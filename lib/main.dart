@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<List<double>>? _magnetometerData;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
-  final player = AudioPlayer();
+  late AudioPlayer player;
 
   double? _userAccelerometerChange;
   double? _gyroscopeChange;
@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }),
     );
     
-    player.setAsset("/assets/alarm.mp3");
+    player = AudioPlayer();
   }
 
   void _setListenSensor() {
@@ -215,12 +215,14 @@ class _MyHomePageState extends State<MyHomePage> {
     player.play();
   }
 
-  void detectFall() {
+  Future<void> detectFall() async {
     setState(() {
       _fallDetected = true;
       _listenSensor = false;
-      _time = _counter;
+      _time = _counter - 16;
     });
+    await player.setAsset('assets/audio/alarm.mp3');
+    player.play();
   }
 
   bool detectPhoneDrop(int timeCheck) {
