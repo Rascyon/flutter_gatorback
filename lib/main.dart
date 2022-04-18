@@ -210,16 +210,11 @@ class _TestPageState extends State<TestPage> {
       _time = 0;
       _counter = 0;
     });
-    stopAlarm();
   }
 
-  Future<void> playAlarm() async {
-    await player.setAsset('assets/audio/alarm.mp3');
+  Future<void> playChirp() async {
+    await player.setAsset('assets/audio/chirp.mp3');
     await player.play();
-  }
-
-  Future<void> stopAlarm() async {
-    await player.stop();
   }
 
   void detectFall() {
@@ -228,7 +223,7 @@ class _TestPageState extends State<TestPage> {
       _listenSensor = false;
       _time = _counter - 16;
     });
-    playAlarm();
+    playChirp();
   }
 
   bool detectPhoneDrop(int timeCheck) {
