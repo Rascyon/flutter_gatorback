@@ -477,6 +477,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _fallDetected = true;
       _listenSensor = false;
     });
+    playChirp();
     fallTrigger();
   }
 
@@ -556,9 +557,21 @@ class _MyHomePageState extends State<MyHomePage> {
       hasFallen = false;
       isCountDown = true;
       contactAuthorities = false;
-      resetTimer();
-      stopAlarm();
+      _listenSensor = false;
+      _accelerometerValues = [];
+      _userAccelerometerValues = [];
+      _gyroscopeValues = [];
+      _magnetometerValues = [];
+
+      _userAccelerometerChange = null;
+      _gyroscopeChange = null;
+      _UACList = [];
+      _GCList = [];
+      _fallDetected = false;
     });
+
+    resetTimer();
+    stopAlarm();
   }
 
   //Function used when accelerometer data indicates possibility of fall.
@@ -582,6 +595,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> playAlarm() async {
     await player.setAsset('assets/audio/alarm.mp3');
+    await player.play();
+  }
+
+  Future<void> playChirp() async {
+    await player.setAsset('assets/audio/chirp.mp3');
     await player.play();
   }
 
