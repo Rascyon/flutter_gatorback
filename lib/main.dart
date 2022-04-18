@@ -577,6 +577,7 @@ class _MyHomePageState extends State<MyHomePage> {
       hasFallen = true;
       resetTimer();
     });
+    playAlarm();
   }
 
   Future<void> playAlarm() async {
@@ -609,9 +610,9 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Visibility(
-                  child: const Text("No fall detected \n Enjoy yourself!",
-                      style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 40)),
+                  child: _listenSensor ?
+                    const Text("Fall Sensors On", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40))
+                      : const Text("Fall Sensors Off", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40)),
                   visible: !hasFallen),
               Visibility(
                 child: const Text('Fall detected \n Are you OK?',
@@ -675,24 +676,24 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Visibility(
-                          child: ElevatedButton(
-                              child: const Text("Noise",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 50)),
-                              onPressed: playAlarm,
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                  MaterialStateProperty.all<Color>(Colors.blue),
-                                  shadowColor: MaterialStateProperty.all<Color>(
-                                    Colors.green.withOpacity(0.5),
-                                  ),
-                                  fixedSize: MaterialStateProperty.all<Size>(
-                                      const Size(180, 400)))),
-                          visible: (contactAuthorities)),
-                      const SizedBox(
-                        width: 9,
-                      ),
+                      // Visibility(
+                      //     child: ElevatedButton(
+                      //         child: const Text("Noise",
+                      //             style: TextStyle(
+                      //                 fontWeight: FontWeight.bold, fontSize: 50)),
+                      //         onPressed: playAlarm,
+                      //         style: ButtonStyle(
+                      //             backgroundColor:
+                      //             MaterialStateProperty.all<Color>(Colors.blue),
+                      //             shadowColor: MaterialStateProperty.all<Color>(
+                      //               Colors.green.withOpacity(0.5),
+                      //             ),
+                      //             fixedSize: MaterialStateProperty.all<Size>(
+                      //                 const Size(180, 400)))),
+                      //     visible: (contactAuthorities)),
+                      // const SizedBox(
+                      //   width: 9,
+                      // ),
                       Visibility(
                         child: ElevatedButton(
                             child: const Text("Reset",
@@ -721,7 +722,7 @@ class _MyHomePageState extends State<MyHomePage> {
             FloatingActionButton(
               onPressed: _setListenSensor,
               tooltip: 'Trigger Fall',
-              child: const Icon(Icons.add),
+              child: _listenSensor ? const Icon(Icons.pause_rounded) : const Icon(Icons.play_arrow_rounded),
             ),
             const SizedBox(
               width: 9,
@@ -730,8 +731,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const TestPage(title: "Gator SafeSense Test")),
               );},
-              tooltip: 'Reset',
-              child: const Icon(Icons.loop),
+              tooltip: 'Test Page',
+              child: const Icon(Icons.storage),
             ),
           ],
         ),
