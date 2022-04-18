@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             return const Text('Something went wrong!');
           }
           else if (snapshot.hasData) {
-            return const TestPage(title: 'Gator SafeSense');
+            return const TestPage(title: 'Gator SafeSense Test');
           }
           else {
             return const Center(
@@ -588,6 +588,16 @@ class _MyHomePageState extends State<MyHomePage> {
     await player.stop();
   }
 
+  void _setListenSensor() {
+    if (!_listenSensor) {
+      startSensorTimer();
+    }
+
+    setState(() {
+      _listenSensor = !_listenSensor;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -709,13 +719,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FloatingActionButton(
-              onPressed: () {
-                if (!contactAuthorities & !hasFallen) {
-                  fallTrigger();
-                } else {
-                  print("RESET APP REQUIRED");
-                }
-              },
+              onPressed: _setListenSensor,
               tooltip: 'Trigger Fall',
               child: const Icon(Icons.add),
             ),
@@ -723,7 +727,9 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 9,
             ),
             FloatingActionButton(
-              onPressed: resetApp,
+              onPressed: () {Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const TestPage(title: "Gator SafeSense Test")),
+              );},
               tooltip: 'Reset',
               child: const Icon(Icons.loop),
             ),
