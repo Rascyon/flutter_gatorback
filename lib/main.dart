@@ -254,23 +254,23 @@ class _TestPageState extends State<TestPage> {
 
   bool detectNoStop(int timeCheck) {
     int count = 0;
-    if (_UACList[timeCheck + 5] < 3) {count++;}
-    if (_UACList[timeCheck + 6] < 3) {count++;}
-    if (_UACList[timeCheck + 7] < 3) {count++;}
-    if (_UACList[timeCheck + 8] < 3) {count++;}
-    if (_UACList[timeCheck + 9] < 3) {count++;}
-    if (_UACList[timeCheck + 10] < 3) {count++;}
-    if (_UACList[timeCheck + 11] < 3) {count++;}
-    if (_UACList[timeCheck + 12] < 3) {count++;}
+    if (_UACList[timeCheck + 5] < 5) {count++;}
+    if (_UACList[timeCheck + 6] < 5) {count++;}
+    if (_UACList[timeCheck + 7] < 5) {count++;}
+    if (_UACList[timeCheck + 8] < 5) {count++;}
+    if (_UACList[timeCheck + 9] < 5) {count++;}
+    if (_UACList[timeCheck + 10] < 5) {count++;}
+    if (_UACList[timeCheck + 11] < 5) {count++;}
+    if (_UACList[timeCheck + 12] < 5) {count++;}
 
     if (count >= 4) {
       setState(() {
         _UACList = [];
         _GCList = [];
       });
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 
   void checkFall() {
@@ -528,23 +528,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool detectNoStop(int timeCheck) {
     int count = 0;
-    if (_UACList[timeCheck + 5] < 3) {count++;}
-    if (_UACList[timeCheck + 6] < 3) {count++;}
-    if (_UACList[timeCheck + 7] < 3) {count++;}
-    if (_UACList[timeCheck + 8] < 3) {count++;}
-    if (_UACList[timeCheck + 9] < 3) {count++;}
-    if (_UACList[timeCheck + 10] < 3) {count++;}
-    if (_UACList[timeCheck + 11] < 3) {count++;}
-    if (_UACList[timeCheck + 12] < 3) {count++;}
+    if (_UACList[timeCheck + 5] < 5) {count++;}
+    if (_UACList[timeCheck + 6] < 5) {count++;}
+    if (_UACList[timeCheck + 7] < 5) {count++;}
+    if (_UACList[timeCheck + 8] < 5) {count++;}
+    if (_UACList[timeCheck + 9] < 5) {count++;}
+    if (_UACList[timeCheck + 10] < 5) {count++;}
+    if (_UACList[timeCheck + 11] < 5) {count++;}
+    if (_UACList[timeCheck + 12] < 5) {count++;}
 
     if (count >= 4) {
       setState(() {
         _UACList = [];
         _GCList = [];
       });
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 
   void checkFall() {
