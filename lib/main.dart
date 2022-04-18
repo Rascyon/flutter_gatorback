@@ -252,6 +252,27 @@ class _TestPageState extends State<TestPage> {
     return false;
   }
 
+  bool detectNoStop(int timeCheck) {
+    int count = 0;
+    if (_UACList[timeCheck + 5] < 3) {count++;}
+    if (_UACList[timeCheck + 6] < 3) {count++;}
+    if (_UACList[timeCheck + 7] < 3) {count++;}
+    if (_UACList[timeCheck + 8] < 3) {count++;}
+    if (_UACList[timeCheck + 9] < 3) {count++;}
+    if (_UACList[timeCheck + 10] < 3) {count++;}
+    if (_UACList[timeCheck + 11] < 3) {count++;}
+    if (_UACList[timeCheck + 12] < 3) {count++;}
+
+    if (count >= 4) {
+      setState(() {
+        _UACList = [];
+        _GCList = [];
+      });
+      return true;
+    }
+    return false;
+  }
+
   void checkFall() {
     //Never checks any data for first 1.5 seconds when sensors start
     if (_fallDetected || _UACList.length < 30) {
@@ -269,6 +290,9 @@ class _TestPageState extends State<TestPage> {
           //Next checks cover possible activities which cause fall detection i.e. drop phone or walking
           //Drop phone test: gyroscope values are greater than 10 over 3 checks
           if (detectPhoneDrop(timeCheck)) {
+            return;
+          }
+          if (detectNoStop(timeCheck)) {
             return;
           }
           detectFall();
@@ -502,6 +526,27 @@ class _MyHomePageState extends State<MyHomePage> {
     return false;
   }
 
+  bool detectNoStop(int timeCheck) {
+    int count = 0;
+    if (_UACList[timeCheck + 5] < 3) {count++;}
+    if (_UACList[timeCheck + 6] < 3) {count++;}
+    if (_UACList[timeCheck + 7] < 3) {count++;}
+    if (_UACList[timeCheck + 8] < 3) {count++;}
+    if (_UACList[timeCheck + 9] < 3) {count++;}
+    if (_UACList[timeCheck + 10] < 3) {count++;}
+    if (_UACList[timeCheck + 11] < 3) {count++;}
+    if (_UACList[timeCheck + 12] < 3) {count++;}
+
+    if (count >= 4) {
+      setState(() {
+        _UACList = [];
+        _GCList = [];
+      });
+      return true;
+    }
+    return false;
+  }
+
   void checkFall() {
     //Never checks any data for first 1.5 seconds when sensors start
     if (_fallDetected || _UACList.length < 30) {
@@ -519,6 +564,9 @@ class _MyHomePageState extends State<MyHomePage> {
           //Next checks cover possible activities which cause fall detection i.e. drop phone or walking
           //Drop phone test: gyroscope values are greater than 10 over 3 checks
           if (detectPhoneDrop(timeCheck)) {
+            return;
+          }
+          if (detectNoStop(timeCheck)) {
             return;
           }
           detectFall();
