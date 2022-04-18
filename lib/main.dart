@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             return const Text('Something went wrong!');
           }
           else if (snapshot.hasData) {
-            return const TestPage(title: 'Gator SafeSense Test');
+            return const MyHomePage(title: 'Gator SafeSense');
           }
           else {
             return const Center(
