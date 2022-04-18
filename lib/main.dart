@@ -780,20 +780,26 @@ class _MyHomePageState extends State<MyHomePage> {
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FloatingActionButton(
-              onPressed: _setListenSensor,
-              tooltip: 'Trigger Fall',
-              child: _listenSensor ? const Icon(Icons.pause_rounded) : const Icon(Icons.play_arrow_rounded),
+            Visibility(
+              child: FloatingActionButton(
+                onPressed: _setListenSensor,
+                tooltip: 'Trigger Fall',
+                child: _listenSensor ? const Icon(Icons.pause_rounded) : const Icon(Icons.play_arrow_rounded),
+              ),
+              visible: (!hasFallen),
             ),
             const SizedBox(
               width: 9,
             ),
-            FloatingActionButton(
-              onPressed: () {Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const TestPage(title: "Gator SafeSense Test")),
-              );},
-              tooltip: 'Test Page',
-              child: const Icon(Icons.storage),
+            Visibility(
+              child: FloatingActionButton(
+                onPressed: () {Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const TestPage(title: "Gator SafeSense Test")),
+                );},
+                tooltip: 'Test Page',
+                child: const Icon(Icons.storage),
+              ),
+              visible: (!hasFallen),
             ),
           ],
         ),
