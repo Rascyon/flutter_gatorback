@@ -244,8 +244,8 @@ class _TestPageState extends State<TestPage> {
 
     if (count >= 4) {
       setState(() {
-        _phoneDropDetected = true;
-        _listenSensor = false;
+        _UACList = [];
+        _GCList = [];
       });
       return true;
     }
